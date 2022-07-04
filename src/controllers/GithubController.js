@@ -1,25 +1,33 @@
-import axios from 'axios';
-import Utils from '../utils'
+import axios from 'axios'
 
 class GithubController{
   async getRepositories(req,res){
-    let utils = new Utils();
-    let arrayRepositories = [];
+      // Todos os repositorios
+    let allRepositories = []
+    
+    // Requisição de todos os repositórios
     for (let index = 1; index <= 4; index++) {
     try{  
       const {data} = await axios(`https://api.github.com/users/takenet/repos?page=${index}`)
-      arrayRepositories.push(...data)
+      allRepositories.push(...data)
     } catch(error){ 
       res.status(400).send(error)
     }
-    }
-    arrayRepositories = utils.filterByCSharp(arrayRepositories)
-    arrayRepositories = utils.sortByData(arrayRepositories)
-    arrayRepositories = utils.fiveOlders(arrayRepositories)
-    res.status(200).json(arrayRepositories)
-    return res.status(200).send()
+  }
+
+  //Filtro C#
+  let CSharp = allRepositories.filter((repo)=>{
+    return repo.language === 'C#'
+  })
+
+  //Ordenação em data crescente
+  let Order = CSharp.sort((a,b)=> new Date(a.created_at).valueOf() - new Date(b.created_at).valueOf())
+
+  //Cinco repositorios mais velhos
+  let FiveOlders = Order.slice(0,5)
+  return res.json(FiveOlders)
+
   }
 }
-
 
 export default new GithubController();
